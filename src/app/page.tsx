@@ -1,5 +1,9 @@
 "use client";
-import { useState, useEffect, useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
+
+type GuestInfo = {
+  name: string;
+};
 
 export default function Home() {
   const [showPopup, setShowPopup] = useState(true);
@@ -12,6 +16,14 @@ export default function Home() {
   const [rsvpGuests, setRsvpGuests] = useState(1);
   const [rsvpAttend, setRsvpAttend] = useState("Yes");
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
+  const [guestInfo, setGuestInfo] = useState<GuestInfo[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  // Music player state
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [musicOn, setMusicOn] = useState(true);
 
   // Generate many petals with random positions and delays
   useEffect(() => {
@@ -46,6 +58,9 @@ export default function Home() {
     setTimeout(() => {
       setShowPopup(false);
       setPopupClosing(false);
+      if (audioRef.current && musicOn) {
+        audioRef.current.play().catch(() => {});
+      }
     }, 500);
   };
 
@@ -78,70 +93,176 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleRsvpSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    setRsvpSubmitted(true);
+  // Handle guest info change
+  const handleGuestInfoChange = (index: number, value: string) => {
+    const newGuestInfo = [...guestInfo];
+    newGuestInfo[index] = { name: value };
+    setGuestInfo(newGuestInfo);
   };
+
+  // Handle RSVP submit
+  const handleRsvpSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (isSubmitting) return;
+
+    try {
+      setIsSubmitting(true);
+      setSubmitError("");
+
+      if (currentStep === 1 && rsvpGuests > 1) {
+        // Initialize guest info array with empty names
+        setGuestInfo(Array(rsvpGuests - 1).fill({ name: "" }));
+        setCurrentStep(2);
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Prepare data with timestamp first
+      const formData = {
+        Timestamp: new Date().toISOString(),
+        Name: rsvpName,
+        "Number of Guests": rsvpGuests,
+        Attendance: rsvpAttend,
+        ...Object.fromEntries(
+          guestInfo.map((guest, index) => [`Guest ${index + 1}`, guest.name])
+        )
+      };
+
+      // Replace with your Google Apps Script URL
+      const response = await fetch(
+        "https://script.google.com/macros/s/AKfycbxWz26qz6hBpigvqjWGkUug9L6TsXbArAS-PG86qGOTEKMYI9t8aUkBxeWztSgIlVmi/exec",
+        {
+          method: "POST",
+          body: JSON.stringify(formData),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to submit RSVP");
+      }
+
+      setRsvpSubmitted(true);
+    } catch (error) {
+      console.error("Error submitting RSVP:", error);
+      setSubmitError("Failed to submit RSVP. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Handle back button
+  const handleBack = () => {
+    setCurrentStep(1);
+  };
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = 0.3;
+      if (musicOn) {
+        audioRef.current.play().catch(() => {});
+      } else {
+        audioRef.current.pause();
+      }
+    }
+  }, [musicOn]);
+
+  // For RSVP flower decorations
+  const rsvpFlowers = [
+    { src: "/flower.png", style: { top: "8%", left: "5%", width: 90, zIndex: 1, animationDuration: "3.2s" } },
+    { src: "/flower.png", style: { bottom: "12%", left: "10%", width: 80, zIndex: 1, animationDuration: "2.7s" } },
+    { src: "/flower.png", style: { top: "50%", left: "2%", width: 70, zIndex: 1, animationDuration: "3.8s" } },
+    { src: "/flower.png", style: { top: "20%", right: "8%", width: 100, zIndex: 1, animationDuration: "2.9s" } },
+    { src: "/flower.png", style: { bottom: "18%", right: "12%", width: 90, zIndex: 1, animationDuration: "3.5s" } },
+    { src: "/flower.png", style: { bottom: "8%", right: "3%", width: 75, zIndex: 1, animationDuration: "2.5s" } },
+    { src: "/flower.png", style: { top: "30%", left: "20%", width: 85, zIndex: 1, animationDuration: "3.1s" } },
+    { src: "/flower.png", style: { bottom: "25%", right: "20%", width: 95, zIndex: 1, animationDuration: "3.7s" } },
+    { src: "/flower.png", style: { top: "12%", right: "18%", width: 80, zIndex: 1, animationDuration: "2.8s" } },
+    { src: "/flower.png", style: { bottom: "35%", left: "18%", width: 90, zIndex: 1, animationDuration: "3.3s" } },
+  ];
 
   return (
     <div className="relative overflow-x-hidden">
-      {/* Petals falling effect - covers first two sections */}
+      {/* Background music */}
+      <audio
+        ref={audioRef}
+        src="/music.mp3"
+        loop
+        autoPlay
+        style={{ display: "none" }}
+      />
+
+      {/* Music toggle button */}
+      <button
+        className="fixed z-[100] bottom-6 right-6 w-12 h-12 bg-white/70 rounded-full flex items-center justify-center shadow-lg transition hover:scale-110"
+        onClick={() => setMusicOn((prev) => !prev)}
+        aria-label={musicOn ? "Turn music off" : "Turn music on"}
+        type="button"
+      >
+        <img
+          src={musicOn ? "/musicon.png" : "/musicoff.png"}
+          alt={musicOn ? "Music On" : "Music Off"}
+          className="w-8 h-8"
+          draggable={false}
+        />
+      </button>
+
+      {/* Petals falling effect */}
       <div
         ref={petalsContainerRef}
         className="pointer-events-none fixed inset-0 z-20 h-[200vh] overflow-hidden"
       />
 
       {/* Popup */}
-{showPopup && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-    <button
-      className="absolute top-6 right-8 text-white hover:text-red-400 text-3xl font-bold z-50"
-      onClick={handleClosePopup}
-      aria-label="Close"
-    >
-      &times;
-    </button>
-    
-    {/* Container for centered content */}
-    <div className="flex flex-col items-center justify-center w-full h-full px-4">
-      {/* Text that centers properly on desktop */}
-      <div className="text-center mb-4 md:mb-8 w-full max-w-4xl">
-        <span
-          className={`block text-[32px] sm:text-[60px] md:text-[80px] font-bold text-[#D4B27C] drop-shadow-lg z-10
-          ${popupClosing
-            ? "opacity-0 animate-invited-fade-out"
-            : "opacity-0 animate-invited-fade-down"
-          }`}
-        >
-          You are Invited to <br className="hidden sm:block" />
-          a Magical Night!
-        </span>
-      </div>
+      {showPopup && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+          <button
+            className="absolute top-6 right-8 text-white hover:text-red-400 text-3xl font-bold z-50"
+            onClick={handleClosePopup}
+            aria-label="Close"
+          >
+            &times;
+          </button>
+          
+          <div className="flex flex-col items-center justify-center w-full h-full px-4">
+            <div className="text-center mb-4 md:mb-8 w-full max-w-4xl">
+              <span
+                className={`block text-[32px] sm:text-[60px] md:text-[80px] font-bold text-[#D4B27C] drop-shadow-lg z-10
+                ${popupClosing
+                  ? "opacity-0 animate-invited-fade-out"
+                  : "opacity-0 animate-invited-fade-down"
+                }`}
+              >
+                You are Invited to <br className="hidden sm:block" />
+                a Magical Night!
+              </span>
+            </div>
 
-      {/* Envelope image with responsive sizing */}
-      <div className="w-full flex justify-center">
-        <img
-          src="/envelope.png"
-          alt="Envelope"
-          className={`w-[280px] h-[187px] sm:w-[340px] sm:h-[227px] md:w-[400px] md:h-[267px] lg:w-[500px] lg:h-[334px] object-contain drop-shadow-lg 
-          ${popupClosing
-            ? "animate-envelope-fade-out"
-            : "animate-envelope-pop"
-          }`}
-        />
-      </div>
-    </div>
-  </div>
-)}
+            <div className="w-full flex justify-center">
+              <img
+                src="/envelope.png"
+                alt="Envelope"
+                className={`w-[280px] h-[187px] sm:w-[340px] sm:h-[227px] md:w-[400px] md:h-[267px] lg:w-[500px] lg:h-[334px] object-contain drop-shadow-lg 
+                ${popupClosing
+                  ? "animate-envelope-fade-out"
+                  : "animate-envelope-pop"
+                }`}
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* First Section */}
       <section
         className="flex flex-col items-center text-white text-center p-10 z-10 min-h-screen bg-no-repeat bg-cover bg-center md:bg-none relative"
         style={{ backgroundImage: "url('/bg.png')" }}
       >
-        {/* Card with flower frame background at the very top */}
         <div
-          className={`relative z-10  max-w-2xl w-[400px] h-[550px] lg:w-[500px] lg:h-[650px] md:h-[700px] md:w-[500px] bg-contain bg-no-repeat bg-center p-8 sm:p-12 mt-5 transition-opacity duration-1000 ${
+          className={`relative z-10 max-w-2xl w-[400px] h-[550px] lg:w-[500px] lg:h-[650px] md:h-[700px] md:w-[500px] bg-contain bg-no-repeat bg-center p-8 sm:p-12 mt-5 transition-opacity duration-1000 ${
             fadeIn ? "opacity-100 fade-in" : "opacity-0"
           }`}
           style={{ 
@@ -149,11 +270,11 @@ export default function Home() {
             backgroundSize: '100% 100%',
             display: 'flex',
             flexDirection: 'column',
-            justifyContent: 'flex-start', // Changed to flex-start to position at top
+            justifyContent: 'flex-start',
             alignItems: 'center'
           }}
         >
-          <div className="text-center mt-20"> {/* Added margin-top */}
+          <div className="text-center mt-20">
             <h1 className="text-3xl font-bold mb-6 text-[#A26A7B]">
               Princess RB's
               <br />
@@ -171,7 +292,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Countdown Circles - positioned absolutely at bottom */}
         <div
           className={`flex gap-6 justify-center w-full absolute left-0 ${fadeIn ? "opacity-100 fade-in-countdown" : "opacity-0"}`}
           style={{ zIndex: 10, bottom: "5rem" }}
@@ -197,68 +317,87 @@ export default function Home() {
         </div>
       </section>
 
- 
-{/* Second Section */}
-<section
-  className="w-screen min-h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center py-16 px-4 relative"
-  style={{ backgroundImage: "url('/bg3.png')" }}
->
-  <div className="flex flex-col items-center w-full max-w-4xl">
-    {/* Text above the map frame - moved higher with mt-[-20px] */}
-    <div className="text-center mb-4 md:mb-6 w-full mt-[-20px] md:mt-[-30px]">
-      <h2 className="text-3xl md:text-4xl font-bold text-[#A26A7B] mb-2">
-        Event Location
-      </h2>
-      <p className="text-lg md:text-xl text-[#A26A7B] mb-3 font-semibold">
-        "A Night to Remember—Here's Where It Happens"
-      </p>
-      <p className="text-base md:text-lg text-[#A26A7B]">
-        Join us for an unforgettable evening at the
-        <br />
-        <span className="font-bold">Subic Park Hotel</span>
-        <br />
-        1 Dewey Ave, Subic Bay Freeport Zone, Zambales
-      </p>
-    </div>
+      {/* Second Section */}
+      <section
+        className="w-screen min-h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center py-16 px-4 relative"
+        style={{ backgroundImage: "url('/bg3.png')" }}
+      >
+        <div className="flex flex-col items-center w-full max-w-4xl">
+          <div className="text-center mb-4 md:mb-6 w-full mt-[-20px] md:mt-[-30px]">
+            <h2 className="text-3xl md:text-4xl font-bold text-[#767818] mb-2">
+              Event Location
+            </h2>
+            <p className="text-lg md:text-xl text-[#767818] mb-3 font-semibold">
+              "A Night to Remember—Here's Where It Happens"
+            </p>
+            <p className="text-base md:text-lg text-[#767818]">
+              Join us for an unforgettable evening at the
+              <br />
+              <span className="font-bold">Subic Park Hotel</span>
+              <br />
+              1 Dewey Ave, Subic Bay Freeport Zone, Zambales
+            </p>
+          </div>
 
-    {/* Map container with flower frame overlay */}
-    <div className="relative w-full max-w-[600px] h-[400px] md:h-[500px] mt-4">
-      {/* Map base */}
-      <div className="absolute inset-0 rounded-lg overflow-hidden shadow-md z-0">
-        <iframe
-          title="Subic Park Hotel Map"
-          src="https://www.google.com/maps?q=Subic+Park+Hotel&output=embed"
-          width="100%"
-          height="100%"
-          style={{ border: 0 }}
-          allowFullScreen={true}
-          loading="lazy"
-          referrerPolicy="no-referrer-when-downgrade"
-        ></iframe>
-      </div>
-      
-      {/* Perfectly centered Flower frame overlay */}
-      <div 
-        className="absolute z-10 pointer-events-none"
-        style={{ 
-          backgroundImage: "url('/frameflower2.png')",
-          backgroundSize: 'contain',
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'center',
-          width: '150%',
-          height: '150%',
-          left: '50%',
-          top: '50%',
-          transform: 'translate(-50%, -50%)'
+          <div className="relative w-full max-w-[600px] h-[400px] md:h-[500px] mt-4">
+            <div className="absolute inset-0 rounded-lg overflow-hidden shadow-md z-0">
+              <iframe
+                title="Subic Park Hotel Map"
+                src="https://www.google.com/maps?q=Subic+Park+Hotel&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen={true}
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+            
+            <div 
+              className="absolute z-10 pointer-events-none"
+              style={{ 
+                backgroundImage: "url('/frameflower2.png')",
+                backgroundSize: 'contain',
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center',
+                width: '150%',
+                height: '150%',
+                left: '50%',
+                top: '50%',
+                transform: 'translate(-50%, -50%)'
+              }}
+            ></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Third Section (RSVP) */}
+      <section
+        className="flex flex-col items-center justify-center min-h-screen py-12 px-4 sm:px-8 relative overflow-hidden"
+        style={{
+          backgroundImage: "url('/bg2.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
-      ></div>
-    </div>
-  </div>
-</section>
+      >
+        {rsvpFlowers.map((flower, idx) => (
+          <img
+            key={idx}
+            src={flower.src}
+            alt=""
+            className="flower-fade absolute pointer-events-none select-none rsvp-flower zoom-flower"
+            style={{
+              ...flower.style,
+              opacity: 0,
+              animation: `fadeInFlower 1.2s ease ${0.3 + idx * 0.2}s forwards, zoomFlower ${flower.style.animationDuration} ease-in-out infinite alternate`,
+            }}
+            aria-hidden="true"
+            draggable={false}
+          />
+        ))}
 
-      {/* Third Section (RSVP) - No petals here */}
-      <section className="w-screen min-h-screen flex flex-col items-center justify-center bg-[#fff7f3] py-16 px-4 relative z-10">
-        <div className="max-w-lg w-full flex flex-col items-center bg-white/80 rounded-xl shadow-lg py-10 px-6">
+        <div className="max-w-lg w-full flex flex-col items-center bg-white/80 rounded-xl shadow-lg py-10 px-6 relative z-10">
           <h2 className="text-3xl md:text-4xl font-bold text-[#A26A7B] mb-2 text-center">
             RSVP
           </h2>
@@ -267,56 +406,117 @@ export default function Home() {
           </p>
           {!rsvpSubmitted ? (
             <form className="w-full flex flex-col gap-4" onSubmit={handleRsvpSubmit}>
-              <div>
-                <label className="block text-[#A26A7B] font-semibold mb-1" htmlFor="rsvp-name">
-                  Full Name
-                </label>
-                <input
-                  id="rsvp-name"
-                  type="text"
-                  required
-                  value={rsvpName}
-                  onChange={e => setRsvpName(e.target.value)}
-                  className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
-                />
-              </div>
-              <div>
-                <label className="block text-[#A26A7B] font-semibold mb-1" htmlFor="rsvp-guests">
-                  Number of Guests
-                </label>
-                <input
-                  id="rsvp-guests"
-                  type="number"
-                  min={1}
-                  required
-                  value={rsvpGuests}
-                  onChange={e => setRsvpGuests(Number(e.target.value))}
-                  className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
-                />
-              </div>
-              <div>
-                <label className="block text-[#A26A7B] font-semibold mb-1">
-                  Will you attend?
-                </label>
-                <select
-                  value={rsvpAttend}
-                  onChange={e => setRsvpAttend(e.target.value)}
-                  className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
-                >
-                  <option value="Yes">Yes</option>
-                  <option value="No">No</option>
-                </select>
-              </div>
-              <button
-                type="submit"
-                className="mt-4 bg-[#A26A7B] text-white font-bold py-2 px-6 rounded shadow hover:bg-[#8b5266] transition"
-              >
-                Send RSVP
-              </button>
+              {currentStep === 1 ? (
+                <>
+                  <div>
+                    <label className="block text-[#A26A7B] font-semibold mb-1" htmlFor="rsvp-name">
+                      Full Name
+                    </label>
+                    <input
+                      id="rsvp-name"
+                      type="text"
+                      required
+                      value={rsvpName}
+                      onChange={e => setRsvpName(e.target.value)}
+                      className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[#A26A7B] font-semibold mb-1" htmlFor="rsvp-guests">
+                      Number of Guests (including you)
+                    </label>
+                    <select
+                      id="rsvp-guests"
+                      value={rsvpGuests}
+                      onChange={e => setRsvpGuests(Number(e.target.value))}
+                      className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
+                    >
+                      {[1, 2, 3, 4, 5].map(num => (
+                        <option key={num} value={num}>{num}</option>
+                      ))}
+                    </select>
+                    <p className="text-sm text-[#A26A7B] mt-1">Maximum of 5 guests allowed</p>
+                  </div>
+                  <div>
+                    <label className="block text-[#A26A7B] font-semibold mb-1">
+                      Will you attend?
+                    </label>
+                    <select
+                      value={rsvpAttend}
+                      onChange={e => setRsvpAttend(e.target.value)}
+                      className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
+                    >
+                      <option value="Yes">Yes</option>
+                      <option value="No">No</option>
+                    </select>
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`mt-4 bg-[#A26A7B] text-white font-bold py-2 px-6 rounded shadow hover:bg-[#8b5266] transition ${
+                      isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                    }`}
+                  >
+                    {isSubmitting ? "Submitting..." : 
+                     rsvpGuests > 1 ? "Next" : "Send RSVP"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div className="w-full">
+                    <h3 className="text-xl font-semibold text-[#A26A7B] mb-4 text-center">
+                      Guest Information
+                    </h3>
+                    <p className="text-sm text-[#A26A7B] mb-4 text-center">
+                      Please provide the names of your {rsvpGuests - 1} guest(s)
+                    </p>
+                    {Array.from({ length: rsvpGuests - 1 }).map((_, index) => (
+                      <div key={index} className="mb-4">
+                        <label className="block text-[#A26A7B] font-semibold mb-1">
+                          Guest {index + 1} Name
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={guestInfo[index]?.name || ""}
+                          onChange={e => handleGuestInfoChange(index, e.target.value)}
+                          className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex gap-4 w-full">
+                    <button
+                      type="button"
+                      onClick={handleBack}
+                      disabled={isSubmitting}
+                      className={`flex-1 bg-gray-300 text-[#A26A7B] font-bold py-2 px-6 rounded shadow hover:bg-gray-400 transition ${
+                        isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      Back
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className={`flex-1 bg-[#A26A7B] text-white font-bold py-2 px-6 rounded shadow hover:bg-[#8b5266] transition ${
+                        isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                      }`}
+                    >
+                      {isSubmitting ? "Submitting..." : "Send RSVP"}
+                    </button>
+                  </div>
+                </>
+              )}
+              {submitError && (
+                <p className="text-red-500 text-sm mt-2">{submitError}</p>
+              )}
             </form>
           ) : (
             <div className="text-center py-10">
-              <h3 className="text-2xl font-bold text-[#A26A7B] mb-4">Thank you for confirming!</h3>
+              <h3 className="text-2xl font-bold text-[#A26A7B] mb-4">
+                Thank you for confirming!
+              </h3>
               <p className="text-lg text-[#A26A7B]">See you soon!</p>
             </div>
           )}
@@ -431,6 +631,33 @@ export default function Home() {
           100% {
             opacity: 1;
             transform: scale(1);
+          }
+        }
+        @keyframes fadeInFlower {
+          from { opacity: 0; transform: translateY(30px) scale(0.8);}
+          to { opacity: 1; transform: translateY(0) scale(1);}
+        }
+        @keyframes spinFlower {
+          0% { transform: rotate(0deg);}
+          100% { transform: rotate(360deg);}
+        }
+        .flower-fade {
+          will-change: opacity, transform;
+        }
+        .spin-flower {
+          animation: spinFlower 6s linear infinite;
+        }
+        @keyframes zoomFlower {
+          0% { transform: scale(0.85);}
+          100% { transform: scale(1.22);}
+        }
+        .zoom-flower {
+          will-change: transform;
+        }
+        @media (min-width: 1024px) {
+          .rsvp-flower {
+            width: 140px !important;
+            max-width: none !important;
           }
         }
       `}</style>
