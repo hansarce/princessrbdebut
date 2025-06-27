@@ -197,39 +197,64 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Second Section */}
-      <section
-        className="w-screen min-h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center py-16 px-4 relative"
-        style={{ backgroundImage: "url('/bg3.png')" }}
-      >
-        <div className="max-w-2xl w-full flex flex-col items-center bg-white/70 rounded-xl shadow-lg py-10 px-6 z-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#A26A7B] mb-2 text-center">
-            Event Location
-          </h2>
-          <p className="text-lg md:text-xl text-[#A26A7B] mb-6 text-center font-semibold">
-            "A Night to Remember—Here's Where It Happens"
-          </p>
-          <p className="text-base md:text-lg text-[#A26A7B] mb-4 text-center">
-            Join us for an unforgettable evening at the
-            <br />
-            <span className="font-bold">Subic Park Hotel</span>
-            <br />
-            1 Dewey Ave, Subic Bay Freeport Zone, Zambales
-          </p>
-          <div className="w-full max-w-md rounded-lg overflow-hidden shadow-md border-2 border-[#E9C2A6] mb-2">
-            <iframe
-              title="Subic Park Hotel Map"
-              src="https://www.google.com/maps?q=Subic+Park+Hotel&output=embed"
-              width="100%"
-              height="250"
-              style={{ border: 0 }}
-              allowFullScreen={true}
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
-          </div>
-        </div>
-      </section>
+ 
+{/* Second Section */}
+<section
+  className="w-screen min-h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center py-16 px-4 relative"
+  style={{ backgroundImage: "url('/bg3.png')" }}
+>
+  <div className="flex flex-col items-center w-full max-w-4xl">
+    {/* Text above the map frame - moved higher with mt-[-20px] */}
+    <div className="text-center mb-4 md:mb-6 w-full mt-[-20px] md:mt-[-30px]">
+      <h2 className="text-3xl md:text-4xl font-bold text-[#A26A7B] mb-2">
+        Event Location
+      </h2>
+      <p className="text-lg md:text-xl text-[#A26A7B] mb-3 font-semibold">
+        "A Night to Remember—Here's Where It Happens"
+      </p>
+      <p className="text-base md:text-lg text-[#A26A7B]">
+        Join us for an unforgettable evening at the
+        <br />
+        <span className="font-bold">Subic Park Hotel</span>
+        <br />
+        1 Dewey Ave, Subic Bay Freeport Zone, Zambales
+      </p>
+    </div>
+
+    {/* Map container with flower frame overlay */}
+    <div className="relative w-full max-w-[600px] h-[400px] md:h-[500px] mt-4">
+      {/* Map base */}
+      <div className="absolute inset-0 rounded-lg overflow-hidden shadow-md z-0">
+        <iframe
+          title="Subic Park Hotel Map"
+          src="https://www.google.com/maps?q=Subic+Park+Hotel&output=embed"
+          width="100%"
+          height="100%"
+          style={{ border: 0 }}
+          allowFullScreen={true}
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+        ></iframe>
+      </div>
+      
+      {/* Perfectly centered Flower frame overlay */}
+      <div 
+        className="absolute z-10 pointer-events-none"
+        style={{ 
+          backgroundImage: "url('/frameflower2.png')",
+          backgroundSize: 'contain',
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'center',
+          width: '150%',
+          height: '150%',
+          left: '50%',
+          top: '50%',
+          transform: 'translate(-50%, -50%)'
+        }}
+      ></div>
+    </div>
+  </div>
+</section>
 
       {/* Third Section (RSVP) - No petals here */}
       <section className="w-screen min-h-screen flex flex-col items-center justify-center bg-[#fff7f3] py-16 px-4 relative z-10">
