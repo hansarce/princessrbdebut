@@ -4,8 +4,14 @@ import { useState, useEffect, useRef } from "react";
 export default function Home() {
   const [showPopup, setShowPopup] = useState(true);
   const [fadeIn, setFadeIn] = useState(false);
-  const [popupClosing, setPopupClosing] = useState(false); // NEW
+  const [popupClosing, setPopupClosing] = useState(false);
   const petalsContainerRef = useRef<HTMLDivElement>(null);
+
+  // RSVP states
+  const [rsvpName, setRsvpName] = useState("");
+  const [rsvpGuests, setRsvpGuests] = useState(1);
+  const [rsvpAttend, setRsvpAttend] = useState("Yes");
+  const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
 
   // Generate many petals with random positions and delays
   useEffect(() => {
@@ -30,7 +36,7 @@ export default function Home() {
   // Trigger fade-in after popup closes
   useEffect(() => {
     if (!showPopup) {
-      setTimeout(() => setFadeIn(true), 100); // slight delay for smoothness
+      setTimeout(() => setFadeIn(true), 100);
     }
   }, [showPopup]);
 
@@ -40,7 +46,7 @@ export default function Home() {
     setTimeout(() => {
       setShowPopup(false);
       setPopupClosing(false);
-    }, 500); // match fade-out duration
+    }, 500);
   };
 
   // Countdown logic
@@ -72,87 +78,103 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
+  const handleRsvpSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setRsvpSubmitted(true);
+  };
+
   return (
-    <div>
-      {/* Event Section with bg.png */}
-      <section
-        className="flex flex-col items-center justify-center text-white text-center p-10 z-10 min-h-screen bg-no-repeat bg-cover bg-center md:bg-none relative overflow-hidden"
-        style={{ backgroundImage: "url('/bg.png')" }}
-      >
-        {/* Popup */}
-        {showPopup && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-            {/* Close button at the very top right */}
-            <button
-              className="absolute top-6 right-8 text-white hover:text-red-400 text-3xl font-bold z-50"
-              onClick={handleClosePopup}
-              aria-label="Close"
-            >
-              &times;
-            </button>
-            <div className="flex flex-col items-center">
-              <span
-                className={`text-[32px] sm:text-[100px] md:text-[80px] font-bold text-[#D4B27C] mb-4 mt-4 sm:mt-8  drop-shadow-lg z-10
-                ${popupClosing
-                  ? "opacity-0 animate-invited-fade-out"
-                  : "opacity-0 animate-invited-fade-down"
-                }`}
-              >
-                You are Invited to <br />
-                to a Magical Night!
-              </span>
-              <img
-                src="/envelope.png"
-                alt="Envelope"
-                className={`w-[340px] h-[227px] sm:w-[400px] sm:h-[400px] md:w-[800px] md:h-[800px] object-contain drop-shadow-lg 
-                ${popupClosing
-                  ? "animate-envelope-fade-out"
-                  : "animate-envelope-pop"
-                }`}
-              />
-            </div>
-          </div>
-        )}
+    <div className="relative overflow-x-hidden">
+      {/* Petals falling effect - covers first two sections */}
+      <div
+        ref={petalsContainerRef}
+        className="pointer-events-none fixed inset-0 z-20 h-[200vh] overflow-hidden"
+      />
 
-        {/* Petals falling effect */}
-        <div
-          ref={petalsContainerRef}
-          className="pointer-events-none absolute inset-0 z-20"
-        />
-
-        {/* Flower frame image behind the text with fade animation */}
-        <img
-          src="/frameflower.png"
-          alt="Flower Frame"
-          className={`absolute left-1/2 top-1/2 w-[1200px] h-[1200px] sm:w-[800px] sm:h-[800px] md:w-[700px] md:h-[700px] md:mb-0 object-contain z-0 pointer-events-none -translate-x-1/2 -translate-y-1/2 transition-opacity duration-1000 ${
-            fadeIn ? "opacity-100 fade-in" : "opacity-0"
-          }`}
-        />
-        <div
-          className={`relative z-10 mb-10 transition-opacity duration-1000 ${
-            fadeIn ? "opacity-100 fade-in" : "opacity-0"
+      {/* Popup */}
+{showPopup && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+    <button
+      className="absolute top-6 right-8 text-white hover:text-red-400 text-3xl font-bold z-50"
+      onClick={handleClosePopup}
+      aria-label="Close"
+    >
+      &times;
+    </button>
+    
+    {/* Container for centered content */}
+    <div className="flex flex-col items-center justify-center w-full h-full px-4">
+      {/* Text that centers properly on desktop */}
+      <div className="text-center mb-4 md:mb-8 w-full max-w-4xl">
+        <span
+          className={`block text-[32px] sm:text-[60px] md:text-[80px] font-bold text-[#D4B27C] drop-shadow-lg z-10
+          ${popupClosing
+            ? "opacity-0 animate-invited-fade-out"
+            : "opacity-0 animate-invited-fade-down"
           }`}
         >
-          <h1 className="text-3xl font-bold mb-10 text-[#A26A7B]">
-            Princess RB&apos;s
-            <br />
-            <span className="text-[#A26A7B]">18th Birthday</span>
-          </h1>
-          <p className="text-lg mb-1 text-[#A26A7B] ">
-            <span className="font-semibold"> Dress Code:</span> Semi-Formal/Cocktail
-          </p>
-          <p className="text-lg mb-1 text-[#A26A7B]">
-            <span className="font-semibold">Location: </span>Subic Park Hotel
-          </p>
-          <p className="text-lg text-[#A26A7B]">
-            <span className="font-semibold"> Time: </span>August 23, 2025 @ 4:00 PM
-          </p>
+          You are Invited to <br className="hidden sm:block" />
+          a Magical Night!
+        </span>
+      </div>
+
+      {/* Envelope image with responsive sizing */}
+      <div className="w-full flex justify-center">
+        <img
+          src="/envelope.png"
+          alt="Envelope"
+          className={`w-[280px] h-[187px] sm:w-[340px] sm:h-[227px] md:w-[400px] md:h-[267px] lg:w-[500px] lg:h-[334px] object-contain drop-shadow-lg 
+          ${popupClosing
+            ? "animate-envelope-fade-out"
+            : "animate-envelope-pop"
+          }`}
+        />
+      </div>
+    </div>
+  </div>
+)}
+
+      {/* First Section */}
+      <section
+        className="flex flex-col items-center text-white text-center p-10 z-10 min-h-screen bg-no-repeat bg-cover bg-center md:bg-none relative"
+        style={{ backgroundImage: "url('/bg.png')" }}
+      >
+        {/* Card with flower frame background at the very top */}
+        <div
+          className={`relative z-10  max-w-2xl w-[400px] h-[550px] lg:w-[500px] lg:h-[650px] md:h-[700px] md:w-[500px] bg-contain bg-no-repeat bg-center p-8 sm:p-12 mt-5 transition-opacity duration-1000 ${
+            fadeIn ? "opacity-100 fade-in" : "opacity-0"
+          }`}
+          style={{ 
+            backgroundImage: "url('/frameflower.png')",
+            backgroundSize: '100% 100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-start', // Changed to flex-start to position at top
+            alignItems: 'center'
+          }}
+        >
+          <div className="text-center mt-20"> {/* Added margin-top */}
+            <h1 className="text-3xl font-bold mb-6 text-[#A26A7B]">
+              Princess RB's
+              <br />
+              <span className="text-[#A26A7B]">18th Birthday</span>
+            </h1>
+            <p className="text-lg mb-2 text-[#A26A7B]">
+              <span className="font-semibold">Dress Code:</span> Semi-Formal/Cocktail
+            </p>
+            <p className="text-lg mb-2 text-[#A26A7B]">
+              <span className="font-semibold">Location:</span> Subic Park Hotel
+            </p>
+            <p className="text-lg text-[#A26A7B]">
+              <span className="font-semibold">Time:</span> August 23, 2025 @ 4:00 PM
+            </p>
+          </div>
         </div>
 
-        {/* Countdown Circles at the bottom of the event section */}
+        {/* Countdown Circles - positioned absolutely at bottom */}
         <div
           className={`flex gap-6 justify-center w-full absolute left-0 ${fadeIn ? "opacity-100 fade-in-countdown" : "opacity-0"}`}
-          style={{ zIndex: 10, bottom: "5rem" }} // <-- changed from bottom-10 (2.5rem) to 5rem
+          style={{ zIndex: 10, bottom: "5rem" }}
         >
           <div className="flex flex-col items-center">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E9C2A6] border-4 border-[#E9C2A6] flex flex-col items-center justify-center shadow-lg animate-countdown-pop">
@@ -175,28 +197,117 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Fullscreen Section with bg3.png */}
+      {/* Second Section */}
       <section
-        className="w-screen h-screen flex items-center justify-center bg-no-repeat bg-cover bg-center"
+        className="w-screen min-h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center py-16 px-4 relative"
         style={{ backgroundImage: "url('/bg3.png')" }}
       >
-        {/* Place your content here */}
-        <div className="text-4xl font-bold text-white drop-shadow-lg">
-          Welcome to the Next Section!
+        <div className="max-w-2xl w-full flex flex-col items-center bg-white/70 rounded-xl shadow-lg py-10 px-6 z-10">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#A26A7B] mb-2 text-center">
+            Event Location
+          </h2>
+          <p className="text-lg md:text-xl text-[#A26A7B] mb-6 text-center font-semibold">
+            "A Night to Remember—Here's Where It Happens"
+          </p>
+          <p className="text-base md:text-lg text-[#A26A7B] mb-4 text-center">
+            Join us for an unforgettable evening at the
+            <br />
+            <span className="font-bold">Subic Park Hotel</span>
+            <br />
+            1 Dewey Ave, Subic Bay Freeport Zone, Zambales
+          </p>
+          <div className="w-full max-w-md rounded-lg overflow-hidden shadow-md border-2 border-[#E9C2A6] mb-2">
+            <iframe
+              title="Subic Park Hotel Map"
+              src="https://www.google.com/maps?q=Subic+Park+Hotel&output=embed"
+              width="100%"
+              height="250"
+              style={{ border: 0 }}
+              allowFullScreen={true}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
         </div>
       </section>
 
-      {/* Petal falling animation keyframes and fade-in */}
+      {/* Third Section (RSVP) - No petals here */}
+      <section className="w-screen min-h-screen flex flex-col items-center justify-center bg-[#fff7f3] py-16 px-4 relative z-10">
+        <div className="max-w-lg w-full flex flex-col items-center bg-white/80 rounded-xl shadow-lg py-10 px-6">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#A26A7B] mb-2 text-center">
+            RSVP
+          </h2>
+          <p className="text-lg md:text-xl text-[#A26A7B] mb-6 text-center font-semibold">
+            We'd love to celebrate with you!
+          </p>
+          {!rsvpSubmitted ? (
+            <form className="w-full flex flex-col gap-4" onSubmit={handleRsvpSubmit}>
+              <div>
+                <label className="block text-[#A26A7B] font-semibold mb-1" htmlFor="rsvp-name">
+                  Full Name
+                </label>
+                <input
+                  id="rsvp-name"
+                  type="text"
+                  required
+                  value={rsvpName}
+                  onChange={e => setRsvpName(e.target.value)}
+                  className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
+                />
+              </div>
+              <div>
+                <label className="block text-[#A26A7B] font-semibold mb-1" htmlFor="rsvp-guests">
+                  Number of Guests
+                </label>
+                <input
+                  id="rsvp-guests"
+                  type="number"
+                  min={1}
+                  required
+                  value={rsvpGuests}
+                  onChange={e => setRsvpGuests(Number(e.target.value))}
+                  className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
+                />
+              </div>
+              <div>
+                <label className="block text-[#A26A7B] font-semibold mb-1">
+                  Will you attend?
+                </label>
+                <select
+                  value={rsvpAttend}
+                  onChange={e => setRsvpAttend(e.target.value)}
+                  className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                className="mt-4 bg-[#A26A7B] text-white font-bold py-2 px-6 rounded shadow hover:bg-[#8b5266] transition"
+              >
+                Send RSVP
+              </button>
+            </form>
+          ) : (
+            <div className="text-center py-10">
+              <h3 className="text-2xl font-bold text-[#A26A7B] mb-4">Thank you for confirming!</h3>
+              <p className="text-lg text-[#A26A7B]">See you soon!</p>
+            </div>
+          )}
+        </div>
+      </section>
+
       <style jsx global>{`
         @keyframes fall-petal {
           0% {
             transform: translateY(-10%) rotate(0deg) scale(1);
           }
           80% {
-            transform: translateY(90vh) rotate(360deg) scale(1.1);
+            transform: translateY(180vh) rotate(360deg) scale(1.1);
           }
           100% {
-            transform: translateY(110vh) rotate(400deg) scale(0.9);
+            transform: translateY(200vh) rotate(400deg) scale(0.9);
             opacity: 0;
           }
         }
