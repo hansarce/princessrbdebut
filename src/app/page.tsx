@@ -10,6 +10,7 @@ export default function Home() {
   const [fadeIn, setFadeIn] = useState(false);
   const [popupClosing, setPopupClosing] = useState(false);
   const petalsContainerRef = useRef<HTMLDivElement>(null);
+  
 
   // RSVP states
   const [rsvpName, setRsvpName] = useState("");
@@ -374,7 +375,7 @@ export default function Home() {
 
       {/* Popup */}
       {showPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-md z-50">
+        <div  onClick={handleClosePopup} className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-md z-50">
           <button
             className="absolute top-6 right-8 text-white hover:text-red-400 text-3xl font-bold z-50"
             onClick={handleClosePopup}
