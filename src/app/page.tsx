@@ -65,7 +65,7 @@ export default function Home() {
   };
 
   // Countdown logic
-  const eventDate = new Date("2025-08-23T16:00:00");
+  const eventDate = new Date("2025-08-23T17:00:00");
   const [countdown, setCountdown] = useState({
     days: 0,
     hours: 0,
@@ -185,7 +185,163 @@ export default function Home() {
   ];
 
   return (
-    <div className="relative overflow-x-hidden">
+    <div
+      className="relative overflow-x-hidden min-h-screen"
+      style={{
+        backgroundImage: "url('/bg.png')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+      }}
+    >
+      {/* Import Carattere font */}
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Carattere&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Brygada+1918:wght@400;700&display=swap');
+        .carattere-font {
+          font-family: 'Carattere', cursive !important;
+        }
+        .brygada-font {
+          font-family: 'Brygada 1918', serif !important;
+        }
+        @keyframes fall-petal {
+          0% {
+            transform: translateY(-10%) rotate(0deg) scale(1);
+          }
+          80% {
+            transform: translateY(180vh) rotate(360deg) scale(1.1);
+          }
+          100% {
+            transform: translateY(200vh) rotate(400deg) scale(0.9);
+            opacity: 0;
+          }
+        }
+        .animate-fall-petal {
+          animation-name: fall-petal;
+          animation-timing-function: linear;
+          animation-iteration-count: infinite;
+        }
+        .fade-in {
+          animation: fadeIn 1.2s ease;
+        }
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+          }
+          to {
+            opacity: 1;
+          }
+        }
+        @keyframes invited-fade-down {
+          0% {
+            opacity: 0;
+            transform: translateY(-30px);
+          }
+          100% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-invited-fade-down {
+          animation: invited-fade-down 1s ease forwards;
+          animation-delay: 1s;
+        }
+        @keyframes invited-fade-out {
+          0% {
+            opacity: 1;
+            transform: translateY(0);
+          }
+          100% {
+            opacity: 0;
+            transform: translateY(30px);
+          }
+        }
+        .animate-invited-fade-out {
+          animation: invited-fade-out 0.5s ease forwards;
+        }
+        @keyframes envelope-pop {
+          0% {
+            transform: scale(0.6) rotate(-20deg);
+            opacity: 0;
+          }
+          60% {
+            transform: scale(1.1) rotate(10deg);
+            opacity: 1;
+          }
+          100% {
+            transform: scale(1) rotate(7.2deg);
+            opacity: 1;
+          }
+        }
+        .animate-envelope-pop {
+          animation: envelope-pop 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+        @keyframes envelope-fade-out {
+          0% {
+            opacity: 1;
+            transform: scale(1) rotate(7.2deg);
+          }
+          100% {
+            opacity: 0;
+            transform: scale(0.8) rotate(20deg);
+          }
+        }
+        .animate-envelope-fade-out {
+          animation: envelope-fade-out 0.5s ease forwards;
+        }
+        .fade-in-countdown {
+          animation: fadeInCountdown 1s ease forwards;
+        }
+        @keyframes fadeInCountdown {
+          from { opacity: 0; transform: translateY(30px);}
+          to { opacity: 1; transform: translateY(0);}
+        }
+        .animate-countdown-pop {
+          animation: countdownPop 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
+        }
+        @keyframes countdownPop {
+          0% {
+            opacity: 0;
+            transform: scale(0.7);
+          }
+          60% {
+            opacity: 1;
+            transform: scale(1.1);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1);
+          }
+        }
+        @keyframes fadeInFlower {
+          from { opacity: 0; transform: translateY(30px) scale(0.8);}
+          to { opacity: 1; transform: translateY(0) scale(1);}
+        }
+        @keyframes spinFlower {
+          0% { transform: rotate(0deg);}
+          100% { transform: rotate(360deg);}
+        }
+        .flower-fade {
+          will-change: opacity, transform;
+        }
+        .spin-flower {
+          animation: spinFlower 6s linear infinite;
+        }
+        @keyframes zoomFlower {
+          0% { transform: scale(0.85);}
+          100% { transform: scale(1.22);}
+        }
+        .zoom-flower {
+          will-change: transform;
+        }
+        @media (min-width: 1024px) {
+          .rsvp-flower {
+            width: 140px !important;
+            max-width: none !important;
+          }
+        }
+      `}</style>
+
       {/* Background music */}
       <audio
         ref={audioRef}
@@ -218,7 +374,7 @@ export default function Home() {
 
       {/* Popup */}
       {showPopup && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/30 backdrop-blur-md z-50">
           <button
             className="absolute top-6 right-8 text-white hover:text-red-400 text-3xl font-bold z-50"
             onClick={handleClosePopup}
@@ -230,13 +386,13 @@ export default function Home() {
           <div className="flex flex-col items-center justify-center w-full h-full px-4">
             <div className="text-center mb-4 md:mb-8 w-full max-w-4xl">
               <span
-                className={`block text-[32px] sm:text-[60px] md:text-[80px] font-bold text-[#D4B27C] drop-shadow-lg z-10
+                className={`block text-[32px] sm:text-[60px] md:text-[80px] font-bold text-[#473d29] drop-shadow-lg z-10 carattere-font
                 ${popupClosing
                   ? "opacity-0 animate-invited-fade-out"
                   : "opacity-0 animate-invited-fade-down"
                 }`}
               >
-                You are Invited to <br className="hidden sm:block" />
+                You're Invited to <br className="hidden sm:block" />
                 a Magical Night!
               </span>
             </div>
@@ -257,10 +413,7 @@ export default function Home() {
       )}
 
       {/* First Section */}
-      <section
-        className="flex flex-col items-center text-white text-center p-10 z-10 min-h-screen bg-no-repeat bg-cover bg-center md:bg-none relative"
-        style={{ backgroundImage: "url('/bg.png')" }}
-      >
+      <section className="flex flex-col items-center text-white text-center p-10 z-10 min-h-screen relative">
         <div
           className={`relative z-10 max-w-2xl w-[400px] h-[550px] lg:w-[500px] lg:h-[650px] md:h-[700px] md:w-[500px] bg-contain bg-no-repeat bg-center p-8 sm:p-12 mt-5 transition-opacity duration-1000 ${
             fadeIn ? "opacity-100 fade-in" : "opacity-0"
@@ -275,19 +428,19 @@ export default function Home() {
           }}
         >
           <div className="text-center mt-20">
-            <h1 className="text-3xl font-bold mb-6 text-[#A26A7B]">
+            <h1 className="text-[40px] lg:text-[50px] lg:mb-6  text-[#A26A7B] carattere-font">
               Princess RB's
               <br />
               <span className="text-[#A26A7B]">18th Birthday</span>
             </h1>
-            <p className="text-lg mb-2 text-[#A26A7B]">
-              <span className="font-semibold">Dress Code:</span> Semi-Formal/Cocktail
+            <p className="text-lg mb-2 text-[#A26A7B] brygada-font">
+              <span className="font-semibold">Dress Code:</span> Formal
             </p>
-            <p className="text-lg mb-2 text-[#A26A7B]">
+            <p className="text-lg mb-2 text-[#A26A7B] brygada-font">
               <span className="font-semibold">Location:</span> Subic Park Hotel
             </p>
-            <p className="text-lg text-[#A26A7B]">
-              <span className="font-semibold">Time:</span> August 23, 2025 @ 4:00 PM
+            <p className="text-lg text-[#A26A7B] brygada-font">
+              <span className="font-semibold">Time:</span> August 23, 2025 @ 5:00 PM
             </p>
           </div>
         </div>
@@ -299,41 +452,38 @@ export default function Home() {
           <div className="flex flex-col items-center">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E9C2A6] border-4 border-[#E9C2A6] flex flex-col items-center justify-center shadow-lg animate-countdown-pop">
               <span className="text-3xl font-bold text-[#A26A7B]">{countdown.days}</span>
-              <span className="text-xs sm:text-base font-semibold text-[#A26A7B] mt-1">Days</span>
+              <span className="text-xs sm:text-base font-semibold text-[#A26A7B] mt-1 brygada-font">Days</span>
+            </div>
+          </div>
+          <div className="flex flex-col items-center">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E9C2A6] border-4 border-[#E9C2A6] flex flex-col items-center justify-center shadow-lg animate-countdown-pop">
+              <span className="text-3xl font-bold text-[#A26A7B]">{countdown.hours}</span>
+              <span className="text-xs sm:text-base font-semibold text-[#A26A7B] mt-1 brygada-font">Hours</span>
             </div>
           </div>
           <div className="flex flex-col items-center">
             <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E9C2A6] border-4 border-[#E9C2A6] flex flex-col items-center justify-center shadow-lg animate-countdown-pop">
               <span className="text-3xl font-bold text-[#A26A7B]">{countdown.minutes}</span>
-              <span className="text-xs sm:text-base font-semibold text-[#A26A7B] mt-1">Minutes</span>
-            </div>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E9C2A6] border-4 border-[#E9C2A6] flex flex-col items-center justify-center shadow-lg animate-countdown-pop">
-              <span className="text-3xl font-bold text-[#A26A7B]">{countdown.seconds}</span>
-              <span className="text-xs sm:text-base font-semibold text-[#A26A7B] mt-1">Seconds</span>
+              <span className="text-xs sm:text-base font-semibold text-[#A26A7B] mt-1 brygada-font">Minutes</span>
             </div>
           </div>
         </div>
       </section>
 
       {/* Second Section */}
-      <section
-        className="w-screen min-h-screen flex flex-col items-center justify-center bg-no-repeat bg-cover bg-center py-16 px-4 relative"
-        style={{ backgroundImage: "url('/bg3.png')" }}
-      >
+      <section className="w-screen min-h-screen flex flex-col items-center justify-center py-16 px-4 relative">
         <div className="flex flex-col items-center w-full max-w-4xl">
           <div className="text-center mb-4 md:mb-6 w-full mt-[-20px] md:mt-[-30px]">
-            <h2 className="text-3xl md:text-4xl font-bold text-[#767818] mb-2">
+            <h2 className="text-[40px] lg:text-[50px] lg:mb-7 md:text-4xl font-bold text-[#767818] mb-2 carattere-font">
               Event Location
             </h2>
-            <p className="text-lg md:text-xl text-[#767818] mb-3 font-semibold">
+            <p className="text-lg md:text-xl text-[#767818] mb-3 font-semibold brygada-font">
               "A Night to Remember—Here's Where It Happens"
             </p>
-            <p className="text-base md:text-lg text-[#767818]">
+            <p className="text-base md:text-lg text-[#767818] brygada-font">
               Join us for an unforgettable evening at the
               <br />
-              <span className="font-bold">Subic Park Hotel</span>
+              <span className="font-bold brygada-font">Subic Park Hotel</span>
               <br />
               1 Dewey Ave, Subic Bay Freeport Zone, Zambales
             </p>
@@ -372,15 +522,7 @@ export default function Home() {
       </section>
 
       {/* Third Section (RSVP) */}
-      <section
-        className="flex flex-col items-center justify-center min-h-screen py-12 px-4 sm:px-8 relative overflow-hidden"
-        style={{
-          backgroundImage: "url('/bg2.png')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
-      >
+      <section className="flex flex-col items-center justify-center min-h-screen py-12 px-4 sm:px-8 relative overflow-hidden">
         {rsvpFlowers.map((flower, idx) => (
           <img
             key={idx}
@@ -522,145 +664,6 @@ export default function Home() {
           )}
         </div>
       </section>
-
-      <style jsx global>{`
-        @keyframes fall-petal {
-          0% {
-            transform: translateY(-10%) rotate(0deg) scale(1);
-          }
-          80% {
-            transform: translateY(180vh) rotate(360deg) scale(1.1);
-          }
-          100% {
-            transform: translateY(200vh) rotate(400deg) scale(0.9);
-            opacity: 0;
-          }
-        }
-        .animate-fall-petal {
-          animation-name: fall-petal;
-          animation-timing-function: linear;
-          animation-iteration-count: infinite;
-        }
-        .fade-in {
-          animation: fadeIn 1.2s ease;
-        }
-        @keyframes fadeIn {
-          from {
-            opacity: 0;
-          }
-          to {
-            opacity: 1;
-          }
-        }
-        @keyframes invited-fade-down {
-          0% {
-            opacity: 0;
-            transform: translateY(-30px);
-          }
-          100% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-invited-fade-down {
-          animation: invited-fade-down 1s ease forwards;
-          animation-delay: 1s;
-        }
-        @keyframes invited-fade-out {
-          0% {
-            opacity: 1;
-            transform: translateY(0);
-          }
-          100% {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-        }
-        .animate-invited-fade-out {
-          animation: invited-fade-out 0.5s ease forwards;
-        }
-        @keyframes envelope-pop {
-          0% {
-            transform: scale(0.6) rotate(-20deg);
-            opacity: 0;
-          }
-          60% {
-            transform: scale(1.1) rotate(10deg);
-            opacity: 1;
-          }
-          100% {
-            transform: scale(1) rotate(7.2deg);
-            opacity: 1;
-          }
-        }
-        .animate-envelope-pop {
-          animation: envelope-pop 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
-        }
-        @keyframes envelope-fade-out {
-          0% {
-            opacity: 1;
-            transform: scale(1) rotate(7.2deg);
-          }
-          100% {
-            opacity: 0;
-            transform: scale(0.8) rotate(20deg);
-          }
-        }
-        .animate-envelope-fade-out {
-          animation: envelope-fade-out 0.5s ease forwards;
-        }
-        .fade-in-countdown {
-          animation: fadeInCountdown 1s ease forwards;
-        }
-        @keyframes fadeInCountdown {
-          from { opacity: 0; transform: translateY(30px);}
-          to { opacity: 1; transform: translateY(0);}
-        }
-        .animate-countdown-pop {
-          animation: countdownPop 0.8s cubic-bezier(0.23, 1, 0.32, 1) both;
-        }
-        @keyframes countdownPop {
-          0% {
-            opacity: 0;
-            transform: scale(0.7);
-          }
-          60% {
-            opacity: 1;
-            transform: scale(1.1);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1);
-          }
-        }
-        @keyframes fadeInFlower {
-          from { opacity: 0; transform: translateY(30px) scale(0.8);}
-          to { opacity: 1; transform: translateY(0) scale(1);}
-        }
-        @keyframes spinFlower {
-          0% { transform: rotate(0deg);}
-          100% { transform: rotate(360deg);}
-        }
-        .flower-fade {
-          will-change: opacity, transform;
-        }
-        .spin-flower {
-          animation: spinFlower 6s linear infinite;
-        }
-        @keyframes zoomFlower {
-          0% { transform: scale(0.85);}
-          100% { transform: scale(1.22);}
-        }
-        .zoom-flower {
-          will-change: transform;
-        }
-        @media (min-width: 1024px) {
-          .rsvp-flower {
-            width: 140px !important;
-            max-width: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
