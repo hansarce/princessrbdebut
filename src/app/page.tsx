@@ -577,7 +577,7 @@ export default function Home() {
               <option key={num} value={num}>{num}</option>
             ))}
           </select>
-          <p className="text-sm text-[#A26A7B] mt-1">Maximum of 5 guests allowed</p>
+          <p className="text-sm text-[#A26A7B] mt-1">Maximum of 4 guests allowed</p>
         </div>
         <div>
           <label className="block text-[#A26A7B] font-semibold mb-1">
