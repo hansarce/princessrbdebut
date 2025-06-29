@@ -104,7 +104,7 @@ export default function Home() {
   const handleRsvpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
-  
+
     // If there are additional guests and we're on step 1, go to step 2
     if (rsvpGuests > 1 && currentStep === 1) {
       // Initialize guest info array with empty names
@@ -113,23 +113,23 @@ export default function Home() {
       setCurrentStep(2);
       return;
     }
-  
+
     // Otherwise, proceed with submission
     try {
       setIsSubmitting(true);
       setSubmitError("");
-  
+
       const scriptUrl = "https://script.google.com/macros/s/AKfycbwzAijSYGESYkKpsGxHrb3ekkccCYeW5Qdx3INFDwYfbulQWYPDrVqDpmWQRWOpAyyF/exec";
-  
+
       // Prepare guest data - include the main attendee as Guest 0 if they're bringing others
-      const guestData = {};
+      const guestData: Record<string, string> = {};
       if (rsvpGuests > 1) {
         guestData["Guest 0"] = rsvpName; // Main attendee
         guestInfo.forEach((guest, index) => {
           guestData[`Guest ${index + 1}`] = guest.name;
         });
       }
-  
+
       await fetch(scriptUrl, {
         method: "POST",
         headers: {
@@ -144,7 +144,7 @@ export default function Home() {
         }),
         mode: "no-cors"
       });
-  
+
       setRsvpSubmitted(true);
     } catch (error) {
       setSubmitError("Submission received! You may close this form.");
@@ -152,7 +152,7 @@ export default function Home() {
     } finally {
       setIsSubmitting(false);
     }
-};
+  };
 
   // Handle back button
   const handleBack = () => {
