@@ -1,10 +1,6 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
 
-type GuestInfo = {
-  name: string;
-};
-
 export default function Home() {
   const [showPopup, setShowPopup] = useState(true);
   const [fadeIn, setFadeIn] = useState(false);
@@ -14,11 +10,8 @@ export default function Home() {
 
   // RSVP states
   const [rsvpName, setRsvpName] = useState("");
-  const [rsvpGuests, setRsvpGuests] = useState(1);
   const [rsvpAttend, setRsvpAttend] = useState("Yes");
   const [rsvpSubmitted, setRsvpSubmitted] = useState(false);
-  const [currentStep, setCurrentStep] = useState(1);
-  const [guestInfo, setGuestInfo] = useState<GuestInfo[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
@@ -94,42 +87,16 @@ export default function Home() {
     return () => clearInterval(timer);
   }, []);
 
-  // Handle guest info change
-  const handleGuestInfoChange = (index: number, value: string) => {
-    const newGuestInfo = [...guestInfo];
-    newGuestInfo[index] = { name: value };
-    setGuestInfo(newGuestInfo);
-  };
-
   // Handle RSVP submit
   const handleRsvpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
 
-    // If there are additional guests and we're on step 1, go to step 2
-    if (rsvpGuests > 1 && currentStep === 1) {
-      // Initialize guest info array with empty names
-      const initialGuestInfo = Array(rsvpGuests - 1).fill({ name: "" });
-      setGuestInfo(initialGuestInfo);
-      setCurrentStep(2);
-      return;
-    }
-
-    // Otherwise, proceed with submission
     try {
       setIsSubmitting(true);
       setSubmitError("");
 
       const scriptUrl = "https://script.google.com/macros/s/AKfycbwzAijSYGESYkKpsGxHrb3ekkccCYeW5Qdx3INFDwYfbulQWYPDrVqDpmWQRWOpAyyF/exec";
-
-      // Prepare guest data - include the main attendee as Guest 0 if they're bringing others
-      const guestData: Record<string, string> = {};
-      if (rsvpGuests > 1) {
-        guestData["Guest 0"] = rsvpName; // Main attendee
-        guestInfo.forEach((guest, index) => {
-          guestData[`Guest ${index + 1}`] = guest.name;
-        });
-      }
 
       await fetch(scriptUrl, {
         method: "POST",
@@ -139,9 +106,7 @@ export default function Home() {
         body: JSON.stringify({
           Timestamp: new Date().toISOString(),
           Name: rsvpName,
-          "Number of Guests": rsvpGuests,
           Attendance: rsvpAttend,
-          ...guestData
         }),
         mode: "no-cors"
       });
@@ -153,11 +118,6 @@ export default function Home() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  // Handle back button
-  const handleBack = () => {
-    setCurrentStep(1);
   };
 
   useEffect(() => {
@@ -548,135 +508,56 @@ export default function Home() {
             We'd love to celebrate with you!
           </p>
           {!rsvpSubmitted ? (
-  <form className="w-full flex flex-col gap-4" onSubmit={handleRsvpSubmit}>
-    {currentStep === 1 ? (
-      <>
-        <div>
-          <label className="block text-[#A26A7B] font-semibold mb-1" htmlFor="rsvp-name">
-            Your Name
-          </label>
-          <input
-            id="rsvp-name"
-            type="text"
-            required
-            value={rsvpName}
-            onChange={e => setRsvpName(e.target.value)}
-            className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
-          />
-        </div>
-        <div>
-          <label className="block text-[#A26A7B] font-semibold mb-1" htmlFor="rsvp-guests">
-            Total Number Attending (including you)
-          </label>
-          <select
-            id="rsvp-guests"
-            value={rsvpGuests}
-            onChange={e => setRsvpGuests(Number(e.target.value))}
-            className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
-          >
-            {[1, 2, 3, 4, 5].map(num => (
-              <option key={num} value={num}>{num}</option>
-            ))}
-          </select>
-          <p className="text-sm text-[#A26A7B] mt-1">Maximum of 4 guests allowed</p>
-        </div>
-        <div>
-          <label className="block text-[#A26A7B] font-semibold mb-1">
-            Will you attend?
-          </label>
-          <select
-            value={rsvpAttend}
-            onChange={e => setRsvpAttend(e.target.value)}
-            className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
-          >
-            <option value="Yes">Yes</option>
-            <option value="No">No</option>
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={`mt-4 bg-[#A26A7B] text-white font-bold py-2 px-6 rounded shadow hover:bg-[#8b5266] transition ${
-            isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-          }`}
-        >
-          {isSubmitting ? "Submitting..." : 
-           rsvpGuests > 1 ? "Next" : "Send RSVP"}
-        </button>
-      </>
-    ) : (
-      <>
-        <div className="w-full">
-          <h3 className="text-xl font-semibold text-[#A26A7B] mb-4 text-center">
-            Guest Information
-          </h3>
-          <p className="text-sm text-[#A26A7B] mb-4 text-center">
-            Please provide names for all attendees
-          </p>
-          
-          {/* Main attendee name (editable) */}
-          <div className="mb-4">
-            <label className="block text-[#A26A7B] font-semibold mb-1">
-              Your Name
-            </label>
-            <input
-              type="text"
-              required
-              value={rsvpName}
-              onChange={e => setRsvpName(e.target.value)}
-              className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
-            />
-          </div>
-          
-          {/* Additional guests */}
-          {Array.from({ length: rsvpGuests - 1 }).map((_, index) => (
-            <div key={index} className="mb-4">
-              <label className="block text-[#A26A7B] font-semibold mb-1">
-                Guest {index + 1} Name
-              </label>
-              <input
-                type="text"
-                required
-                value={guestInfo[index]?.name || ""}
-                onChange={e => handleGuestInfoChange(index, e.target.value)}
-                className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
-              />
-            </div>
-          ))}
-        </div>
-        <div className="flex gap-4 w-full">
-          <button
-            type="button"
-            onClick={() => setCurrentStep(1)}
-            disabled={isSubmitting}
-            className={`flex-1 bg-gray-300 text-[#A26A7B] font-bold py-2 px-6 rounded shadow hover:bg-gray-400 transition ${
-              isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-            }`}
-          >
-            Back
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className={`flex-1 bg-[#A26A7B] text-white font-bold py-2 px-6 rounded shadow hover:bg-[#8b5266] transition ${
-              isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-            }`}
-          >
-            {isSubmitting ? "Submitting..." : "Send RSVP"}
-          </button>
-        </div>
-      </>
-    )}
-    {submitError && (
-      <p className="text-red-500 text-sm mt-2">{submitError}</p>
-    )}
-  </form>
-) : (
-  <div className="text-center py-10">
-    <h3 className="text-2xl font-bold text-[#A26A7B] mb-4">
-      Thank you for confirming!
-    </h3>
-    <p className="text-lg text-[#A26A7B]">See you soon!</p>
+            <form className="w-full flex flex-col gap-4" onSubmit={handleRsvpSubmit}>
+              <div>
+                <label className="block text-[#A26A7B] font-semibold mb-1" htmlFor="rsvp-name">
+                  Your Name
+                </label>
+                <input
+                  id="rsvp-name"
+                  type="text"
+                  required
+                  value={rsvpName}
+                  onChange={e => setRsvpName(e.target.value)}
+                  className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
+                />
+              </div>
+              <div>
+                <label className="block text-[#A26A7B] font-semibold mb-1">
+                  Will you attend?
+                </label>
+                <select
+                  value={rsvpAttend}
+                  onChange={e => setRsvpAttend(e.target.value)}
+                  className="w-full px-4 py-2 rounded border border-[#E9C2A6] focus:outline-none focus:ring-2 focus:ring-[#A26A7B] text-[#A26A7B]"
+                >
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </select>
+              </div>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className={`mt-4 bg-[#A26A7B] text-white font-bold py-2 px-6 rounded shadow hover:bg-[#8b5266] transition ${
+                  isSubmitting ? "opacity-70 cursor-not-allowed" : ""
+                }`}
+              >
+                {isSubmitting ? "Submitting..." : "Send RSVP"}
+              </button>
+              {submitError && (
+                <p className="text-red-500 text-sm mt-2">{submitError}</p>
+              )}
+            </form>
+          ) : (
+            <div className="text-center py-10">
+              <h3 className="text-2xl font-bold text-[#A26A7B] mb-4">
+                Thank you for confirming!
+              </h3>
+              <p className="text-lg text-[#A26A7B]">
+                {rsvpAttend === "Yes"
+                  ? "See you soon!"
+                  : "We’re sad you can’t join us, but we appreciate your response."}
+              </p>
             </div>
           )}
         </div>
